@@ -20,13 +20,31 @@ export type VacancyCheckResult = {
   raw: GoogleCalendarFetchResult["raw"];
 };
 
+export function filterComparableEvents(
+  events: VacancyEvent[],
+  comparisonStartDate: string,
+) {
+  return events.filter((event) => event.date >= comparisonStartDate);
+}
+
+export function shouldNotifyVacancyChange({
+  changed,
+  events,
+}: {
+  changed: boolean;
+  events: VacancyEvent[];
+}) {
+  return changed && events.length > 0;
+}
+
 export async function checkVacancyAndSave(): Promise<VacancyCheckResult> {
   const targetMonth = getTargetMonth();
   const target = getMonitorTarget(targetMonth);
   const comparisonStartDate = getComparisonStartDate(targetMonth);
   const calendarResult = await fetchVacancyEvents(targetMonth);
-  const events = calendarResult.events.filter(
-    (event) => event.date >= comparisonStartDate,
+  const events = filterComparableEvents(
+    calendarResult.events,
+    comparisonStartDate,
   );
   const ignoredEvents = calendarResult.events.filter(
     (event) => event.date < comparisonStartDate,

@@ -12,4 +12,7 @@ jobs:
       - name: Call vacancy cron API
         run: |
           curl --fail --show-error --silent \
+            -H "X-Trigger-Source: github-actions" \
+            -H "X-GitHub-Run-Id: ${{ github.run_id }}" \
+            -H "X-GitHub-Run-Number: ${{ github.run_number }}" \
             "${{ secrets.VACANCY_CRON_URL }}"

@@ -32,13 +32,11 @@ async function sendDiscordMessage(content: string) {
   }
 }
 
-export async function sendDiscordTestNotification() {
-  await sendDiscordMessage(
-    `<@${DISCORD_USER_ID}> neconoshima vacancy monitor test notification`,
-  );
+export function buildDiscordTestMessage() {
+  return `<@${DISCORD_USER_ID}> neconoshima vacancy monitor test notification`;
 }
 
-export async function sendVacancyChangedNotification({
+export function buildVacancyChangedMessage({
   target,
   events,
 }: {
@@ -49,12 +47,24 @@ export async function sendVacancyChangedNotification({
     .map((event) => `- ${event.date}: ${event.summary || "(no summary)"}`)
     .join("\n");
 
-  await sendDiscordMessage(
-    [
-      `<@${DISCORD_USER_ID}> neconoshima vacancy calendar updated.`,
-      `target: ${target}`,
-      "追加/変更検知イベント:",
-      eventLines,
-    ].join("\n"),
-  );
+  return [
+    `<@${DISCORD_USER_ID}> neconoshima vacancy calendar updated.`,
+    `target: ${target}`,
+    "追加/変更検知イベント:",
+    eventLines,
+  ].join("\n");
+}
+
+export async function sendDiscordTestNotification() {
+  await sendDiscordMessage(buildDiscordTestMessage());
+}
+
+export async function sendVacancyChangedNotification({
+  target,
+  events,
+}: {
+  target: string;
+  events: VacancyEvent[];
+}) {
+  await sendDiscordMessage(buildVacancyChangedMessage({ target, events }));
 }
