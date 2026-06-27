@@ -1,0 +1,15 @@
+name: Check vacancy
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  check-vacancy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call vacancy cron API
+        run: |
+          curl --fail --show-error --silent \
+            "${{ secrets.VACANCY_CRON_URL }}"

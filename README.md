@@ -94,11 +94,23 @@ curl http://localhost:3000/api/check-vacancy
 
 `DISCORD_WEBHOOK_URL` に設定したWebhookへテスト通知を送ります。フロントの「Discordテスト通知」ボタンから呼び出せます。
 
-## Vercel Cron
+## GitHub Actions Schedule
 
 `GET /api/cron/check-vacancy`
 
-Vercel Cronから10分おきに呼び出されます。`2026-08-03` 以降の監視対象イベントに変更があり、かつイベントが1件以上ある場合だけDiscordへメンション通知します。
+GitHub Actionsから10分おきに呼び出されます。`2026-08-03` 以降の監視対象イベントに変更があり、かつイベントが1件以上ある場合だけDiscordへメンション通知します。
+
+Workflow:
+
+```text
+.github/workflows/check-vacancy.yml
+```
+
+GitHub repository secret:
+
+```text
+VACANCY_CRON_URL=https://your-vercel-domain.vercel.app/api/cron/check-vacancy
+```
 
 ## Not Included
 
