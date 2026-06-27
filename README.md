@@ -94,10 +94,13 @@ curl http://localhost:3000/api/check-vacancy
 
 `DISCORD_WEBHOOK_URL` に設定したWebhookへテスト通知を送ります。フロントの「Discordテスト通知」ボタンから呼び出せます。
 
+## Vercel Cron
+
+`GET /api/cron/check-vacancy`
+
+Vercel Cronから10分おきに呼び出されます。`2026-08-03` 以降の監視対象イベントに変更があり、かつイベントが1件以上ある場合だけDiscordへメンション通知します。
+
 ## Not Included
 
-- 空室変更時の本番Discord通知
-- Discord Webhook
-- Vercel Cron
 - Vercelデプロイ
 - Playwright / Puppeteer
