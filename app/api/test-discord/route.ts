@@ -20,7 +20,8 @@ export async function POST() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        content: "@tenshou6460 neconoshima vacancy monitor test notification",
+        content:
+          "<@572071291054587914> neconoshima vacancy monitor test notification",
         allowed_mentions: {
           parse: ["users"],
         },
