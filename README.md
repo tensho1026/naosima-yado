@@ -16,6 +16,7 @@ GOOGLE_CALENDAR_ID=
 GOOGLE_API_KEY=
 TARGET_MONTH=
 DATABASE_URL=
+DISCORD_WEBHOOK_URL=
 ```
 
 ## Database
@@ -51,31 +52,51 @@ curl http://localhost:3000/api/check-vacancy
 - Google Calendar APIから対象月のイベントを取得します。
 - `items` から `start.date` が対象月で始まるイベントだけを抽出します。
 - `{ date, summary, updated, etag }` に正規化して日付順に並べます。
-- 正規化配列のJSONからSHA-256ハッシュを作成します。
+- 既知の `2026-08-02` は比較対象から除外し、`2026-08-03` 以降の追加だけを監視します。
+- 監視対象配列のJSONからSHA-256ハッシュを作成します。
 - `MonitorState` に `target`, `hash`, `payload`, `checkedAt` を保存します。
+- レスポンスにはGoogle Calendar APIの生に近い `raw` も含めます。
 
 レスポンス例:
 
 ```json
 {
   "ok": true,
-  "target": "neconoshima-2026-08",
+  "target": "neconoshima-2026-08-from-03",
+  "comparisonStartDate": "2026-08-03",
   "changed": true,
   "hash": "xxxx",
-  "events": [
+  "events": [],
+  "ignoredEvents": [
     {
       "date": "2026-08-02",
       "summary": "－",
       "updated": "2026-06-14T10:24:03.487Z",
       "etag": "\"3562865286975326\""
     }
-  ]
+  ],
+  "raw": {
+    "status": 200,
+    "itemCount": 1,
+    "items": [
+      {
+        "date": "2026-08-02",
+        "summary": "－"
+      }
+    ]
+  }
 }
 ```
 
+## Discord Test
+
+`POST /api/test-discord`
+
+`DISCORD_WEBHOOK_URL` に設定したWebhookへテスト通知を送ります。フロントの「Discordテスト通知」ボタンから呼び出せます。
+
 ## Not Included
 
-- Discord通知
+- 空室変更時の本番Discord通知
 - Discord Webhook
 - Vercel Cron
 - Vercelデプロイ

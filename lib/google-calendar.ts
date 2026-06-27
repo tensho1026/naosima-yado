@@ -19,6 +19,25 @@ type GoogleCalendarResponse = {
   items?: unknown;
 };
 
+export type GoogleCalendarRawEvent = {
+  date?: string;
+  dateTime?: string;
+  summary?: string;
+  updated?: string;
+  etag?: string;
+};
+
+export type GoogleCalendarFetchResult = {
+  status: number;
+  itemCount: number;
+  raw: {
+    status: number;
+    itemCount: number;
+    items: GoogleCalendarRawEvent[];
+  };
+  events: VacancyEvent[];
+};
+
 const GOOGLE_CALENDAR_EVENTS_URL =
   "https://clients6.google.com/calendar/v3/calendars";
 
@@ -99,7 +118,22 @@ function normalizeEvent(event: GoogleCalendarEvent): VacancyEvent | null {
   };
 }
 
-export async function fetchVacancyEvents(targetMonth: string) {
+function normalizeRawEvent(event: GoogleCalendarEvent): GoogleCalendarRawEvent {
+  return {
+    date: typeof event.start?.date === "string" ? event.start.date : undefined,
+    dateTime:
+      typeof event.start?.dateTime === "string"
+        ? event.start.dateTime
+        : undefined,
+    summary: typeof event.summary === "string" ? event.summary : undefined,
+    updated: typeof event.updated === "string" ? event.updated : undefined,
+    etag: typeof event.etag === "string" ? event.etag : undefined,
+  };
+}
+
+export async function fetchVacancyEvents(
+  targetMonth: string,
+): Promise<GoogleCalendarFetchResult> {
   const url = buildGoogleCalendarUrl(targetMonth);
   const response = await fetch(url, {
     method: "GET",
@@ -119,17 +153,34 @@ export async function fetchVacancyEvents(targetMonth: string) {
     throw new Error("Invalid Google Calendar API response format.");
   }
 
-  return data.items
+  const items = data.items as GoogleCalendarEvent[];
+  const rawItems = items.map((item) => normalizeRawEvent(item));
+  const events = items
     .map((item) => normalizeEvent(item as GoogleCalendarEvent))
     .filter((event): event is VacancyEvent => Boolean(event))
     .filter((event) => event.date.startsWith(targetMonth))
     .sort((a, b) => a.date.localeCompare(b.date));
+
+  return {
+    status: response.status,
+    itemCount: rawItems.length,
+    raw: {
+      status: response.status,
+      itemCount: rawItems.length,
+      items: rawItems,
+    },
+    events,
+  };
 }
 
 export function getTargetMonth() {
   return process.env.TARGET_MONTH ?? "2026-08";
 }
 
+export function getComparisonStartDate(targetMonth: string) {
+  return `${targetMonth}-03`;
+}
+
 export function getMonitorTarget(targetMonth: string) {
-  return `neconoshima-${targetMonth}`;
+  return `neconoshima-${targetMonth}-from-03`;
 }

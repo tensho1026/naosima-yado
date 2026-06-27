@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   fetchVacancyEvents,
+  getComparisonStartDate,
   getMonitorTarget,
   getTargetMonth,
 } from "@/lib/google-calendar";
@@ -13,7 +14,14 @@ export async function GET() {
   try {
     const targetMonth = getTargetMonth();
     const target = getMonitorTarget(targetMonth);
-    const events = await fetchVacancyEvents(targetMonth);
+    const comparisonStartDate = getComparisonStartDate(targetMonth);
+    const calendarResult = await fetchVacancyEvents(targetMonth);
+    const events = calendarResult.events.filter(
+      (event) => event.date >= comparisonStartDate,
+    );
+    const ignoredEvents = calendarResult.events.filter(
+      (event) => event.date < comparisonStartDate,
+    );
     const hash = sha256(JSON.stringify(events));
     const checkedAt = new Date();
 
@@ -25,7 +33,6 @@ export async function GET() {
     await prisma.monitorState.upsert({
       where: { target },
       create: {
-        id: 1,
         target,
         hash,
         payload: events,
@@ -41,9 +48,12 @@ export async function GET() {
     return NextResponse.json({
       ok: true,
       target,
+      comparisonStartDate,
       changed: previous?.hash !== hash,
       hash,
       events,
+      ignoredEvents,
+      raw: calendarResult.raw,
     });
   } catch (error) {
     console.error("Failed to check vacancy.", error);
